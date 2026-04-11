@@ -1,11 +1,11 @@
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from langchain_core.messages import HumanMessage, AIMessage
 
 from db.session import get_db
-from db.models import User, Plan, DailyLog, WeeklySummary
+from db.models import User, Plan, DailyLog, WeeklySummary, Conversation, ChatMessage
 from agent.graph import app as agent_app
 from agent.state import AgentState
 
@@ -15,14 +15,33 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     user_id: str
     message: str
-    # Optional: pass name/email on first message to auto-create user
     name: str = "User"
     email: str | None = None
+    conversation_id: str | None = None
 
 
 class ChatResponse(BaseModel):
     response: str
     next_node: str
+    user_id: str
+    conversation_id: str
+
+
+class ConversationOut(BaseModel):
+    id: str
+    title: str
+    created_at: str
+    updated_at: str
+
+
+class MessageOut(BaseModel):
+    id: str
+    role: str
+    content: str
+    created_at: str
+
+
+class CreateConversationRequest(BaseModel):
     user_id: str
 
 
@@ -168,6 +187,64 @@ def _persist_state(user_id: str, result: AgentState, db: Session):
     db.commit()
 
 
+@router.get("/chat/conversations", response_model=list[ConversationOut])
+def list_conversations(user_id: str, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    convos = (
+        db.query(Conversation)
+        .filter(Conversation.user_id == user_id)
+        .order_by(Conversation.updated_at.desc())
+        .all()
+    )
+    return [
+        ConversationOut(
+            id=c.id,
+            title=c.title,
+            created_at=c.created_at.isoformat(),
+            updated_at=c.updated_at.isoformat(),
+        )
+        for c in convos
+    ]
+
+
+@router.post("/chat/conversations", response_model=ConversationOut, status_code=201)
+def create_conversation(req: CreateConversationRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == req.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    convo = Conversation(user_id=req.user_id, title="New Chat")
+    db.add(convo)
+    db.commit()
+    db.refresh(convo)
+    return ConversationOut(
+        id=convo.id,
+        title=convo.title,
+        created_at=convo.created_at.isoformat(),
+        updated_at=convo.updated_at.isoformat(),
+    )
+
+
+@router.get("/chat/conversations/{conversation_id}/messages", response_model=list[MessageOut])
+def get_conversation_messages(conversation_id: str, db: Session = Depends(get_db)):
+    convo = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+    if not convo:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    return [
+        MessageOut(
+            id=m.id,
+            role=m.role,
+            content=m.content,
+            created_at=m.created_at.isoformat(),
+        )
+        for m in convo.messages
+    ]
+
+
 @router.post("/chat", response_model=ChatResponse)
 def chat_endpoint(req: ChatRequest, db: Session = Depends(get_db)):
     # Auto-create user if not exists
@@ -178,6 +255,24 @@ def chat_endpoint(req: ChatRequest, db: Session = Depends(get_db)):
         db.add(user)
         db.commit()
 
+    # Resolve or create conversation
+    if req.conversation_id:
+        convo = db.query(Conversation).filter(Conversation.id == req.conversation_id).first()
+        if not convo:
+            raise HTTPException(status_code=404, detail="Conversation not found")
+    else:
+        convo = Conversation(user_id=req.user_id, title="New Chat")
+        db.add(convo)
+        db.flush()
+
+    # Auto-title on first message
+    if convo.title == "New Chat":
+        raw = req.message.strip()
+        convo.title = (raw[:40] + "...") if len(raw) > 40 else raw
+
+    # Persist human message
+    db.add(ChatMessage(conversation_id=convo.id, role="human", content=req.message))
+
     state = _load_state(req.user_id, db)
     state["messages"] = [HumanMessage(content=req.message)]
 
@@ -185,8 +280,16 @@ def chat_endpoint(req: ChatRequest, db: Session = Depends(get_db)):
 
     _persist_state(req.user_id, result, db)
 
+    ai_response = result.get("response", "Something went wrong. Please try again.")
+
+    # Persist AI message and touch updated_at
+    db.add(ChatMessage(conversation_id=convo.id, role="ai", content=ai_response))
+    convo.updated_at = datetime.utcnow()
+    db.commit()
+
     return ChatResponse(
-        response=result.get("response", "Something went wrong. Please try again."),
+        response=ai_response,
         next_node=result.get("next_node", ""),
         user_id=req.user_id,
+        conversation_id=convo.id,
     )

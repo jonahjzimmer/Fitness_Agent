@@ -3,25 +3,19 @@ import { Routes, Route, NavLink } from 'react-router-dom'
 import Chat from './components/Chat'
 import Dashboard from './components/Dashboard'
 import Login from './components/Login'
-
-const INITIAL_MESSAGES = [
-  {
-    role: 'assistant',
-    content: "Hi! I'm FitAgent, your AI health coach. Tell me your fitness goal and I'll build a personalized plan for you.",
-  },
-]
+import ChatSidebar from './components/ChatSidebar'
 
 export default function App() {
   const [userId, setUserId] = useState(() => localStorage.getItem('userId'))
   const [userName, setUserName] = useState(() => localStorage.getItem('userName') || '')
-  const [messages, setMessages] = useState(INITIAL_MESSAGES)
+  const [activeConversationId, setActiveConversationId] = useState(null)
 
   function handleLogin(id, name) {
     localStorage.setItem('userId', id)
     localStorage.setItem('userName', name)
     setUserId(id)
     setUserName(name)
-    setMessages(INITIAL_MESSAGES)
+    setActiveConversationId(null)
   }
 
   function handleLogout() {
@@ -29,7 +23,7 @@ export default function App() {
     localStorage.removeItem('userName')
     setUserId(null)
     setUserName('')
-    setMessages(INITIAL_MESSAGES)
+    setActiveConversationId(null)
   }
 
   if (!userId) {
@@ -70,9 +64,27 @@ export default function App() {
         </div>
       </header>
 
-      <main className="flex-1 flex">
+      <main className="flex-1 flex overflow-hidden">
         <Routes>
-          <Route path="/" element={<Chat userId={userId} userName={userName} messages={messages} setMessages={setMessages} />} />
+          <Route
+            path="/"
+            element={
+              <div className="flex flex-1 overflow-hidden">
+                <ChatSidebar
+                  userId={userId}
+                  activeConversationId={activeConversationId}
+                  onSelectConversation={(convo) => setActiveConversationId(convo.id)}
+                  onNewChat={(convo) => setActiveConversationId(convo.id)}
+                />
+                <Chat
+                  userId={userId}
+                  userName={userName}
+                  conversationId={activeConversationId}
+                  onConversationCreated={(id) => setActiveConversationId(id)}
+                />
+              </div>
+            }
+          />
           <Route path="/dashboard" element={<Dashboard userId={userId} />} />
         </Routes>
       </main>

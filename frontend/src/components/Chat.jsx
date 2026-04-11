@@ -3,6 +3,11 @@ import axios from 'axios'
 
 const API = import.meta.env.VITE_API_URL || ''
 
+const INITIAL_MESSAGE = {
+  role: 'assistant',
+  content: "Hi! I'm FitAgent, your AI health coach. Tell me your fitness goal and I'll build a personalized plan for you.",
+}
+
 const SUGGESTIONS = [
   'I want to lose 10 lbs in 3 months, I can work out 4x a week',
   'I had grilled chicken and rice for dinner',
@@ -10,10 +15,37 @@ const SUGGESTIONS = [
   'How am I tracking toward my goal?',
 ]
 
-export default function Chat({ userId, userName, messages, setMessages }) {
+export default function Chat({ userId, userName, conversationId, onConversationCreated }) {
+  const [messages, setMessages] = useState([INITIAL_MESSAGE])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [historyLoading, setHistoryLoading] = useState(false)
   const bottomRef = useRef(null)
+
+  useEffect(() => {
+    if (!conversationId) {
+      setMessages([INITIAL_MESSAGE])
+      return
+    }
+
+    setHistoryLoading(true)
+    axios
+      .get(`${API}/chat/conversations/${conversationId}/messages`)
+      .then(({ data }) => {
+        if (data.length === 0) {
+          setMessages([INITIAL_MESSAGE])
+        } else {
+          setMessages(
+            data.map((m) => ({
+              role: m.role === 'human' ? 'user' : 'assistant',
+              content: m.content,
+            }))
+          )
+        }
+      })
+      .catch(() => setMessages([INITIAL_MESSAGE]))
+      .finally(() => setHistoryLoading(false))
+  }, [conversationId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -31,12 +63,18 @@ export default function Chat({ userId, userName, messages, setMessages }) {
         user_id: userId,
         message: userMsg,
         name: userName || 'User',
+        conversation_id: conversationId || undefined,
       })
+
+      if (!conversationId && data.conversation_id) {
+        onConversationCreated(data.conversation_id)
+      }
+
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: data.response, node: data.next_node },
       ])
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: 'assistant', content: 'Something went wrong. Please try again.', error: true },
@@ -46,8 +84,16 @@ export default function Chat({ userId, userName, messages, setMessages }) {
     }
   }
 
+  if (historyLoading) {
+    return (
+      <div className="flex flex-1 items-center justify-center text-gray-500 text-sm">
+        Loading conversation...
+      </div>
+    )
+  }
+
   return (
-    <div className="flex flex-col w-full max-w-3xl mx-auto p-4 gap-4 h-[calc(100vh-57px)]">
+    <div className="flex flex-col flex-1 p-4 gap-4 h-[calc(100vh-57px)] overflow-hidden">
       {/* Message list */}
       <div className="flex-1 overflow-y-auto flex flex-col gap-3 pr-1">
         {messages.map((msg, i) => (
