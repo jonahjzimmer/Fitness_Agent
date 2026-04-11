@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -53,6 +53,27 @@ def _load_state(user_id: str, db: Session) -> AgentState:
         .first()
     )
 
+    thirty_days_ago = today - timedelta(days=30)
+    historical_logs = (
+        db.query(DailyLog)
+        .filter(
+            DailyLog.user_id == user_id,
+            DailyLog.date >= thirty_days_ago,
+            DailyLog.date < today,
+        )
+        .order_by(DailyLog.date.asc())
+        .all()
+    )
+    workout_history = [
+        {
+            "date": str(log.date),
+            "workouts": log.workouts or [],
+            "calories": log.calories or 0,
+            "macros": log.macros or {},
+        }
+        for log in historical_logs
+    ]
+
     return AgentState(
         messages=[],
         user_id=user_id,
@@ -60,6 +81,7 @@ def _load_state(user_id: str, db: Session) -> AgentState:
         goal=user.goal or {},
         daily_log=(daily_log.meals or []) + (daily_log.workouts or []) if daily_log else [],
         weekly_summary=weekly_summary.summary if weekly_summary else {},
+        workout_history=workout_history,
         next_node="",
         response=None,
     )

@@ -6,10 +6,12 @@ from agent.state import AgentState
 client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
 SYSTEM_PROMPT = """You are a fitness progress analyst. Given the user's goal, current plan, today's log,
-and weekly summary, provide an honest and motivating progress assessment.
+weekly summary, and workout history, provide an honest and motivating progress assessment.
 
-Be specific with numbers. Highlight wins, flag areas that need attention, and give one actionable tip.
-Keep the response conversational and under 200 words.
+When workout history is provided, analyze strength progression (weight increases, volume changes) and
+consistency (workouts per week). Be specific — name the exercises and the actual numbers.
+Highlight wins, flag areas that need attention, and give one actionable tip.
+Keep the response conversational and under 250 words.
 """
 
 
@@ -20,17 +22,42 @@ def run(state: AgentState) -> AgentState:
     weekly_summary = state.get("weekly_summary", {})
     current_plan = state.get("current_plan", {})
 
+    workout_history = state.get("workout_history", [])
+
     # Compute today's totals
     meals_today = [e for e in daily_log if e.get("log_type") == "meal"]
     workouts_today = [e for e in daily_log if e.get("log_type") == "workout"]
     calories_today = sum(e.get("entry", {}).get("estimated_calories", 0) for e in meals_today)
     protein_today = sum(e.get("entry", {}).get("estimated_protein_g", 0) for e in meals_today)
 
+    # Build human-readable workout history
+    history_lines = []
+    for entry in workout_history:
+        for w in entry.get("workouts", []):
+            ex = w.get("entry", w)
+            if not isinstance(ex, dict):
+                continue
+            workout_type = ex.get("type", "workout")
+            exercises = ex.get("exercises_completed", [])
+            duration = ex.get("duration_min", "")
+            if exercises:
+                history_lines.append(
+                    f"{entry['date']}: {workout_type} ({duration}min) - {', '.join(exercises)}"
+                )
+            else:
+                history_lines.append(f"{entry['date']}: {workout_type} ({duration}min)")
+
+    history_text = "\n".join(history_lines) if history_lines else "No historical workouts recorded."
+
     context = f"""Goal: {json.dumps(goal)}
 Today's nutrition: {calories_today} calories, {protein_today}g protein
 Meals logged today: {len(meals_today)}
 Workouts logged today: {len(workouts_today)}
 Weekly summary: {json.dumps(weekly_summary)}
+
+Workout history (last 30 days):
+{history_text}
+
 User's question: {last_message}
 """
 

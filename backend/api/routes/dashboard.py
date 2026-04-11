@@ -1,12 +1,35 @@
 import calendar as cal_module
+import uuid
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from db.session import get_db
 from db.models import User, Plan, DailyLog, WeeklySummary
 
 router = APIRouter()
+
+
+class CreateUserRequest(BaseModel):
+    name: str
+    email: str
+
+
+@router.post("/users", status_code=201)
+def create_user(req: CreateUserRequest, db: Session = Depends(get_db)):
+    if db.query(User).filter(User.email == req.email).first():
+        raise HTTPException(status_code=409, detail="Email already in use")
+    user = User(id=str(uuid.uuid4()), name=req.name, email=req.email, goal={})
+    db.add(user)
+    db.commit()
+    return {"id": user.id, "name": user.name, "email": user.email}
+
+
+@router.get("/users")
+def list_users(db: Session = Depends(get_db)):
+    users = db.query(User).order_by(User.created_at).all()
+    return [{"id": u.id, "name": u.name, "email": u.email} for u in users]
 
 
 @router.get("/users/{user_id}/progress")

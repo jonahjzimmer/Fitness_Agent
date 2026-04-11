@@ -10,7 +10,7 @@ const SUGGESTIONS = [
   'How am I tracking toward my goal?',
 ]
 
-export default function Chat({ userId, messages, setMessages }) {
+export default function Chat({ userId, userName, messages, setMessages }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef(null)
@@ -30,7 +30,7 @@ export default function Chat({ userId, messages, setMessages }) {
       const { data } = await axios.post(`${API}/chat`, {
         user_id: userId,
         message: userMsg,
-        name: 'Demo User',
+        name: userName || 'User',
       })
       setMessages((prev) => [
         ...prev,
