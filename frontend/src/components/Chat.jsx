@@ -10,13 +10,7 @@ const SUGGESTIONS = [
   'How am I tracking toward my goal?',
 ]
 
-export default function Chat({ userId }) {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: "Hi! I'm FitAgent, your AI health coach. Tell me your fitness goal and I'll build a personalized plan for you.",
-    },
-  ])
+export default function Chat({ userId, messages, setMessages }) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const bottomRef = useRef(null)

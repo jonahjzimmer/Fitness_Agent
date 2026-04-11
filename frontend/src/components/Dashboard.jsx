@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import WorkoutCalendar from './WorkoutCalendar'
 
 const API = import.meta.env.VITE_API_URL || ''
 
@@ -50,6 +51,11 @@ export default function Dashboard({ userId }) {
   const [logs, setLogs] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [calendarData, setCalendarData] = useState([])
+  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
+  const [calMonth, setCalMonth] = useState(() => new Date().getMonth() + 1)
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -63,6 +69,21 @@ export default function Dashboard({ userId }) {
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
   }, [userId])
+
+  useEffect(() => {
+    if (!userId) return
+    axios
+      .get(`${API}/users/${userId}/workouts/calendar`, {
+        params: { year: calYear, month: calMonth },
+      })
+      .then((res) => setCalendarData(res.data))
+      .catch(() => setCalendarData([]))
+  }, [userId, calYear, calMonth])
+
+  function handleMonthChange(year, month) {
+    setCalYear(year)
+    setCalMonth(month)
+  }
 
   if (loading) return <div className="m-auto text-gray-500 text-sm">Loading dashboard...</div>
   if (error) return (
@@ -159,6 +180,19 @@ export default function Dashboard({ userId }) {
         </div>
       )}
 
+      {/* Workout Calendar */}
+      <div>
+        <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wide mb-3">
+          Workout Calendar
+        </h2>
+        <WorkoutCalendar
+          calendarData={calendarData}
+          currentYear={calYear}
+          currentMonth={calMonth}
+          onMonthChange={handleMonthChange}
+        />
+      </div>
+
       {/* Weekly workout plan */}
       {Object.keys(workoutPlan).length > 0 && (
         <div>
@@ -173,7 +207,8 @@ export default function Dashboard({ userId }) {
               return (
                 <div
                   key={day}
-                  className={`rounded-2xl p-4 ${isRest ? 'bg-gray-800/50' : 'bg-gray-800'}`}
+                  className={`rounded-2xl p-4 ${isRest ? 'bg-gray-800/50' : 'bg-gray-800 cursor-pointer hover:ring-2 hover:ring-brand-500 transition-all'}`}
+                  onClick={!isRest ? () => { setSelectedDay(day); setModalOpen(true) } : undefined}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-semibold text-gray-400 uppercase">{day}</p>
@@ -203,6 +238,42 @@ export default function Dashboard({ userId }) {
                 </div>
               )
             })}
+          </div>
+        </div>
+      )}
+
+      {/* Day detail modal */}
+      {modalOpen && selectedDay && workoutPlan[selectedDay] && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+          onClick={() => setModalOpen(false)}
+        >
+          <div
+            className="bg-gray-900 rounded-2xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-xs font-semibold text-gray-400 uppercase">{selectedDay}</p>
+                <p className="text-lg font-semibold text-white">{workoutPlan[selectedDay].focus}</p>
+              </div>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="text-gray-500 hover:text-white text-xl font-bold leading-none"
+              >
+                ✕
+              </button>
+            </div>
+            <ul className="flex flex-col gap-3">
+              {workoutPlan[selectedDay].exercises.map((ex, i) => (
+                <li key={i} className="flex justify-between items-center bg-gray-800 rounded-xl px-4 py-3">
+                  <span className="text-sm text-gray-200 font-medium">{ex.name}</span>
+                  <span className="text-xs text-brand-400 bg-brand-700/20 px-2 py-1 rounded-full">
+                    {ex.sets}×{ex.reps}
+                  </span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
