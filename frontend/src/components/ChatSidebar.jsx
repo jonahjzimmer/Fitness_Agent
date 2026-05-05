@@ -27,8 +27,8 @@ export default function ChatSidebar({ userId, activeConversationId, onSelectConv
   }
 
   return (
-    <aside className="w-64 flex-shrink-0 bg-gray-900 border-r border-gray-800 flex flex-col h-full">
-      <div className="p-3 border-b border-gray-800">
+    <aside className="w-64 flex-shrink-0 bg-white border-r border-gray-200 flex flex-col h-full">
+      <div className="p-3 border-b border-gray-200">
         <button
           onClick={handleNewChat}
           className="w-full bg-brand-600 hover:bg-brand-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors"
@@ -39,10 +39,10 @@ export default function ChatSidebar({ userId, activeConversationId, onSelectConv
 
       <div className="flex-1 overflow-y-auto py-2">
         {loading && (
-          <p className="text-center text-gray-600 text-xs py-4 animate-pulse">Loading...</p>
+          <p className="text-center text-gray-400 text-xs py-4 animate-pulse">Loading...</p>
         )}
         {!loading && conversations.length === 0 && (
-          <p className="text-center text-gray-600 text-xs py-4">No conversations yet</p>
+          <p className="text-center text-gray-400 text-xs py-4">No conversations yet</p>
         )}
         {conversations.map((convo) => (
           <button
@@ -50,13 +50,13 @@ export default function ChatSidebar({ userId, activeConversationId, onSelectConv
             onClick={() => onSelectConversation(convo)}
             className={`w-full text-left px-3 py-3 text-sm transition-colors rounded-lg mx-1 ${
               convo.id === activeConversationId
-                ? 'bg-gray-800 text-gray-100'
-                : 'text-gray-400 hover:bg-gray-800/50 hover:text-gray-200'
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
             }`}
             style={{ width: 'calc(100% - 8px)' }}
           >
             <div className="truncate font-medium">{convo.title}</div>
-            <div className="text-xs text-gray-600 mt-0.5">
+            <div className="text-xs text-gray-400 mt-0.5">
               {new Date(convo.updated_at).toLocaleDateString()}
             </div>
           </button>

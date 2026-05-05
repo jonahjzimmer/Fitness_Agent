@@ -32,14 +32,14 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-6">
+      <header className="bg-white border-b border-gray-200 px-6 py-3 flex items-center gap-6">
         <span className="text-brand-500 font-bold text-xl tracking-tight">FitAgent</span>
         <nav className="flex gap-4 text-sm flex-1">
           <NavLink
             to="/"
             end
             className={({ isActive }) =>
-              isActive ? 'text-brand-500 font-medium' : 'text-gray-400 hover:text-gray-200'
+              isActive ? 'text-brand-500 font-medium' : 'text-gray-500 hover:text-gray-900'
             }
           >
             Chat
@@ -47,17 +47,17 @@ export default function App() {
           <NavLink
             to="/dashboard"
             className={({ isActive }) =>
-              isActive ? 'text-brand-500 font-medium' : 'text-gray-400 hover:text-gray-200'
+              isActive ? 'text-brand-500 font-medium' : 'text-gray-500 hover:text-gray-900'
             }
           >
             Dashboard
           </NavLink>
         </nav>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-gray-400">{userName}</span>
+          <span className="text-gray-500">{userName}</span>
           <button
             onClick={handleLogout}
-            className="text-gray-500 hover:text-gray-200 transition-colors"
+            className="text-gray-400 hover:text-gray-900 transition-colors"
           >
             Sign out
           </button>

@@ -22,6 +22,11 @@ Examples:
 
 
 def run(state: AgentState) -> AgentState:
+    # Short-circuit: new users in onboarding always go to planning
+    is_onboarding = not state.get("current_plan") and not state.get("goal", {}).get("onboarding_complete")
+    if is_onboarding:
+        return {**state, "next_node": "planning"}
+
     last_message = state["messages"][-1].content if state["messages"] else ""
 
     response = client.messages.create(

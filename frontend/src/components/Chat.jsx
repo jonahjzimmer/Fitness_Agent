@@ -86,7 +86,7 @@ export default function Chat({ userId, userName, conversationId, onConversationC
 
   if (historyLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center text-gray-500 text-sm">
+      <div className="flex flex-1 items-center justify-center text-gray-400 text-sm">
         Loading conversation...
       </div>
     )
@@ -103,13 +103,13 @@ export default function Chat({ userId, userName, conversationId, onConversationC
                 msg.role === 'user'
                   ? 'bg-brand-600 text-white rounded-br-sm'
                   : msg.error
-                  ? 'bg-red-900/50 text-red-300 rounded-bl-sm'
-                  : 'bg-gray-800 text-gray-100 rounded-bl-sm'
+                  ? 'bg-red-50 text-red-600 rounded-bl-sm'
+                  : 'bg-gray-100 text-gray-900 rounded-bl-sm'
               }`}
             >
               {msg.content}
               {msg.node && (
-                <span className="block mt-1 text-xs text-gray-500">
+                <span className="block mt-1 text-xs text-gray-400">
                   [{msg.node}]
                 </span>
               )}
@@ -118,7 +118,7 @@ export default function Chat({ userId, userName, conversationId, onConversationC
         ))}
         {loading && (
           <div className="flex justify-start">
-            <div className="bg-gray-800 rounded-2xl rounded-bl-sm px-4 py-3 text-sm text-gray-400">
+            <div className="bg-gray-100 rounded-2xl rounded-bl-sm px-4 py-3 text-sm text-gray-500">
               <span className="animate-pulse">Thinking...</span>
             </div>
           </div>
@@ -133,7 +133,7 @@ export default function Chat({ userId, userName, conversationId, onConversationC
             <button
               key={s}
               onClick={() => sendMessage(s)}
-              className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-full px-3 py-1.5 transition-colors"
+              className="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full px-3 py-1.5 transition-colors"
             >
               {s}
             </button>
@@ -154,13 +154,13 @@ export default function Chat({ userId, userName, conversationId, onConversationC
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Message FitAgent..."
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+          className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-brand-500 transition-colors"
           disabled={loading}
         />
         <button
           type="submit"
           disabled={!input.trim() || loading}
-          className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl px-5 py-3 text-sm font-medium transition-colors"
+          className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl px-5 py-3 text-sm font-medium transition-colors"
         >
           Send
         </button>

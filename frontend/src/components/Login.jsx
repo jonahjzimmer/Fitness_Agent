@@ -39,11 +39,11 @@ export default function Login({ onLogin }) {
 
   if (showCreate) {
     return (
-      <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
             <span className="text-brand-500 font-bold text-3xl tracking-tight">FitAgent</span>
-            <p className="text-gray-400 mt-2 text-sm">Create an account</p>
+            <p className="text-gray-500 mt-2 text-sm">Create an account</p>
           </div>
 
           <form onSubmit={handleCreate} className="flex flex-col gap-4">
@@ -53,7 +53,7 @@ export default function Login({ onLogin }) {
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+              className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-brand-500 transition-colors"
             />
             <input
               type="email"
@@ -61,13 +61,13 @@ export default function Login({ onLogin }) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-gray-900 border border-gray-700 rounded-xl px-4 py-3 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-brand-500 transition-colors"
+              className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-brand-500 transition-colors"
             />
-            {createError && <p className="text-red-400 text-sm">{createError}</p>}
+            {createError && <p className="text-red-500 text-sm">{createError}</p>}
             <button
               type="submit"
               disabled={submitting || !name.trim() || !email.trim()}
-              className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-700 disabled:text-gray-500 text-white rounded-xl px-5 py-3 text-sm font-medium transition-colors"
+              className="bg-brand-600 hover:bg-brand-700 disabled:bg-gray-200 disabled:text-gray-400 text-white rounded-xl px-5 py-3 text-sm font-medium transition-colors"
             >
               {submitting ? 'Creating…' : 'Create account'}
             </button>
@@ -75,7 +75,7 @@ export default function Login({ onLogin }) {
 
           <button
             onClick={() => { setShowCreate(false); setCreateError(null) }}
-            className="mt-5 w-full text-center text-sm text-gray-500 hover:text-gray-300 transition-colors"
+            className="mt-5 w-full text-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
           >
             ← Back to profiles
           </button>
@@ -85,34 +85,34 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-6">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <span className="text-brand-500 font-bold text-3xl tracking-tight">FitAgent</span>
-          <p className="text-gray-400 mt-2 text-sm">Select a profile to continue</p>
+          <p className="text-gray-500 mt-2 text-sm">Select a profile to continue</p>
         </div>
 
         {loadingUsers && (
-          <p className="text-center text-gray-500 text-sm animate-pulse">Loading profiles...</p>
+          <p className="text-center text-gray-400 text-sm animate-pulse">Loading profiles...</p>
         )}
 
         {fetchError && (
-          <p className="text-center text-red-400 text-sm">{fetchError}</p>
+          <p className="text-center text-red-500 text-sm">{fetchError}</p>
         )}
 
         {!loadingUsers && !fetchError && (
           <>
             {users.length === 0 ? (
-              <p className="text-center text-gray-500 text-sm mb-6">No profiles yet. Create one below.</p>
+              <p className="text-center text-gray-400 text-sm mb-6">No profiles yet. Create one below.</p>
             ) : (
               <div className="flex flex-col gap-3 mb-6">
                 {users.map((user) => (
                   <button
                     key={user.id}
                     onClick={() => onLogin(user.id, user.name)}
-                    className="w-full bg-gray-900 hover:bg-gray-800 border border-gray-800 hover:border-brand-600 rounded-xl px-5 py-4 text-left transition-colors group"
+                    className="w-full bg-white hover:bg-gray-50 border border-gray-200 hover:border-brand-600 rounded-xl px-5 py-4 text-left transition-colors group"
                   >
-                    <div className="font-medium text-gray-100 group-hover:text-brand-400 transition-colors">
+                    <div className="font-medium text-gray-900 group-hover:text-brand-500 transition-colors">
                       {user.name}
                     </div>
                     <div className="text-sm text-gray-500 mt-0.5">{user.email}</div>
@@ -123,7 +123,7 @@ export default function Login({ onLogin }) {
 
             <button
               onClick={() => setShowCreate(true)}
-              className="w-full text-center text-sm text-gray-500 hover:text-gray-300 transition-colors"
+              className="w-full text-center text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               + Create account
             </button>

@@ -12,41 +12,41 @@ function buildIso(year, month, day) {
 function DayDetailModal({ isoDate, workouts, onClose }) {
   return (
     <div
-      className="fixed inset-0 bg-black/60 flex items-center justify-center z-50"
+      className="fixed inset-0 bg-gray-900/50 flex items-center justify-center z-50"
       onClick={onClose}
     >
       <div
-        className="bg-gray-900 border border-gray-700 rounded-2xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto"
+        className="bg-white border border-gray-200 rounded-2xl p-6 w-full max-w-md mx-4 max-h-[80vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-base font-semibold text-gray-100">Workouts — {isoDate}</h3>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-200 text-lg leading-none">✕</button>
+          <h3 className="text-base font-semibold text-gray-900">Workouts — {isoDate}</h3>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-900 text-lg leading-none">✕</button>
         </div>
 
         {workouts.length === 0 ? (
-          <p className="text-gray-500 text-sm">No workout details recorded.</p>
+          <p className="text-gray-400 text-sm">No workout details recorded.</p>
         ) : (
           <div className="flex flex-col gap-4">
             {workouts.map((w, i) => (
-              <div key={i} className="bg-gray-800 rounded-xl p-4">
+              <div key={i} className="bg-gray-100 rounded-xl p-4">
                 <div className="flex justify-between items-start mb-2">
                   <p className="font-semibold text-brand-500">{w.type || 'Workout'}</p>
                   {w.duration_min && (
-                    <span className="text-xs text-gray-500">{w.duration_min} min</span>
+                    <span className="text-xs text-gray-400">{w.duration_min} min</span>
                   )}
                 </div>
                 {w.exercises_completed?.length > 0 && (
                   <ul className="flex flex-col gap-1 mt-1">
                     {w.exercises_completed.map((ex, j) => (
-                      <li key={j} className="text-xs text-gray-400">
+                      <li key={j} className="text-xs text-gray-600">
                         • {typeof ex === 'string' ? ex : ex.name || JSON.stringify(ex)}
                       </li>
                     ))}
                   </ul>
                 )}
                 {w.notes && (
-                  <p className="text-xs text-gray-600 mt-2 italic">{w.notes}</p>
+                  <p className="text-xs text-gray-500 mt-2 italic">{w.notes}</p>
                 )}
               </div>
             ))}
@@ -87,22 +87,22 @@ export default function WorkoutCalendar({ calendarData, currentYear, currentMont
   }
 
   return (
-    <div className="bg-gray-800 rounded-2xl p-4">
+    <div className="bg-white rounded-2xl p-4">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={handlePrev}
-          className="text-gray-400 hover:text-gray-200 px-3 py-1 rounded-lg hover:bg-gray-700 transition-colors"
+          className="text-gray-500 hover:text-gray-900 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors"
         >
           ‹
         </button>
-        <h3 className="text-sm font-semibold text-gray-300">
+        <h3 className="text-sm font-semibold text-gray-800">
           {MONTH_NAMES[currentMonth - 1]} {currentYear}
         </h3>
         <button
           onClick={handleNext}
           disabled={isCurrentMonth}
-          className="text-gray-400 hover:text-gray-200 px-3 py-1 rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-30 disabled:cursor-default"
+          className="text-gray-500 hover:text-gray-900 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-30 disabled:cursor-default"
         >
           ›
         </button>
@@ -111,7 +111,7 @@ export default function WorkoutCalendar({ calendarData, currentYear, currentMont
       {/* Day-of-week headers */}
       <div className="grid grid-cols-7 mb-1">
         {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((d) => (
-          <div key={d} className="text-center text-xs text-gray-600 pb-1">{d}</div>
+          <div key={d} className="text-center text-xs text-gray-400 pb-1">{d}</div>
         ))}
       </div>
 
@@ -137,12 +137,12 @@ export default function WorkoutCalendar({ calendarData, currentYear, currentMont
                 isToday ? 'ring-1 ring-brand-500' : '',
                 dayData
                   ? 'bg-brand-700/20 hover:bg-brand-700/40 cursor-pointer text-brand-500'
-                  : 'text-gray-600 cursor-default',
+                  : 'text-gray-300 cursor-default',
               ].join(' ')}
             >
               <span>{day}</span>
               {dayData && (
-                <span className="mt-0.5 bg-brand-500 text-gray-950 text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                <span className="mt-0.5 bg-brand-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                   {dayData.workout_count}
                 </span>
               )}
